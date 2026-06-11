@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 
+import authRoutes from "./routes/auth.routes.js";
+
 const app = express();
 
 app.use(cors());
@@ -11,5 +13,7 @@ app.get("/api/health", (req, res) => {
     message: "Cinematch API Runnning",
   });
 });
+
+app.use("/api/auth", authRoutes);
 
 export default app;
