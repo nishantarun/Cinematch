@@ -10,3 +10,8 @@ export const registerSchema = z.object({
 
   password: z.string().min(4, "Password must be atleas 4 characters"),
 });
+
+export const loginSchema = z.object({
+  email: z.email("Invalid email address"),
+  password: z.string().min(4, "Password must be atleast 4 characters"),
+});
