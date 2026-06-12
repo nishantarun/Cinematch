@@ -1,6 +1,5 @@
 import bcrypt from "bcrypt";
 import User from "../models/User.js";
-import { success } from "zod";
 
 export const register = async (req, res) => {
   try {
@@ -26,8 +25,8 @@ export const register = async (req, res) => {
       message: "User created successfully",
       user: {
         id: user._id,
-        email: user.email,
         username: user.username,
+        email: user.email,
       },
     });
   } catch (error) {
