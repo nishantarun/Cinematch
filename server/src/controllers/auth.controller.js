@@ -1,81 +1,57 @@
 import bcrypt from "bcrypt";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
+import ApiError from "../utils/ApiError.js";
+import asyncHandler from "../middlewares/asyncHandler.js";
 
-export const register = async (req, res) => {
-  try {
-    const { username, email, password } = req.body;
+export const register = asyncHandler(async (req, res) => {
+  const { username, email, password } = req.body;
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(409).json({
-        success: false,
-        message: "Email already registered",
-      });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({
-      username,
-      email,
-      password: hashedPassword,
-    });
-
-    res.status(201).json({
-      success: true,
-      message: "User created successfully",
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-      },
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    throw new ApiError(409, "Email already registered");
   }
-};
 
-export const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const user = await User.create({
+    username,
+    email,
+    password: hashedPassword,
+  });
 
-    const user = await User.findOne({ email });
+  res.status(201).json({
+    success: true,
+    message: "User created successfully",
+    user: {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+    },
+  });
+});
 
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid credentials",
-      });
-    }
+export const login = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
 
-    const isMatch = await bcrypt.compare(password, user.password);
+  const user = await User.findOne({ email });
 
-    if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid credentials",
-      });
-    }
-
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
-
-    res.status(200).json({
-      success: true,
-      message: "Login successful",
-      token,
-    });
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+  if (!user) {
+    throw new ApiError(401, "Invalid credentials");
   }
-};
+
+  const isMatch = await bcrypt.compare(password, user.password);
+
+  if (!isMatch) {
+    throw new ApiError(401, "Invalid credentials");
+  }
+
+  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Login successful",
+    token,
+  });
+});
