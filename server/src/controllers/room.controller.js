@@ -59,19 +59,19 @@ export const joinRoom = asyncHandler(async (req, res) => {
 });
 
 export const startSession = asyncHandler(async (req, res) => {
-  const {roomCode} = req.params;
+  const { roomCode } = req.params;
 
-  const room = await Room.findOne({roomCode});
+  const room = await Room.findOne({ roomCode });
 
-  if(!room) {
+  if (!room) {
     throw new ApiError(404, "Room not Found");
   }
 
-  if(room.host.toString() !== req.user.userId) {
-    throw new ApiError(403, "Only the host can start the session")
+  if (room.host.toString() !== req.user.userId) {
+    throw new ApiError(403, "Only the host can start the session");
   }
 
-  if(room.currentSession.status === "active"){
+  if (room.currentSession.status === "active") {
     throw new ApiError(400, "Session is already active");
   }
 
@@ -81,7 +81,7 @@ export const startSession = asyncHandler(async (req, res) => {
     status: "active",
     movieDeck,
     startedAt: new Date(),
-  }
+  };
 
   await room.save();
 
@@ -89,5 +89,28 @@ export const startSession = asyncHandler(async (req, res) => {
     success: true,
     message: "Session started",
     movieCount: movieDeck.length,
-  })
+  });
+});
+
+export const getSession = asyncHandler(async (req, res) => {
+  const { roomCode } = req.params;
+
+  const room = await Room.findOne({ roomCode });
+
+  if (!room) {
+    throw new ApiError(404, "Room not found");
+  }
+
+  const isMember = room.members.some(
+    (member) => member.toString() === req.user.userId,
+  );
+
+  if (!isMember) {
+    throw new ApiError(403, "You are not a member of this room");
+  }
+
+  return res.status(200).json({
+    success: true,
+    session: room.currentSession,
+  });
 });

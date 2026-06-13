@@ -39,11 +39,11 @@ const RoomSchema = mongoose.Schema(
         enum: ["waiting", "active", "completed"],
         default: "waiting",
       },
+
+      movieDeck: [MovieSchema],
+
+      startedAt: Date,
     },
-
-    movieDeck: [MovieSchema],
-
-    startedAt: Date,
   },
   {
     timestamps: true,
