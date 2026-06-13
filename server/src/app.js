@@ -3,6 +3,7 @@ import cors from "cors";
 
 import authRoutes from "./routes/auth.routes.js";
 import roomRoutes from "./routes/room.routes.js";
+import movieRoutes from "./routes/movie.routes.js";
 
 import errorHandler from "./middlewares/error.middleware.js";
 import authMiddleware from "./middlewares/auth.middleware.js";
@@ -27,6 +28,7 @@ app.get("/api/protected", authMiddleware, (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/rooms", roomRoutes);
+app.use("/api/movies", movieRoutes);
 
 app.use(errorHandler);
 
