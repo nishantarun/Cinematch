@@ -2,6 +2,7 @@ import Room from "../models/Room.js";
 import generateRoomCode from "../utils/generateRoomCode.js";
 import asyncHandler from "../middlewares/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
+import { getMovieDeck } from "../services/tmdb.service.js";
 
 export const createRoom = asyncHandler(async (req, res) => {
   let roomCode;
@@ -55,4 +56,38 @@ export const joinRoom = asyncHandler(async (req, res) => {
     success: true,
     room: updatedRoom,
   });
+});
+
+export const startSession = asyncHandler(async (req, res) => {
+  const {roomCode} = req.params;
+
+  const room = await Room.findOne({roomCode});
+
+  if(!room) {
+    throw new ApiError(404, "Room not Found");
+  }
+
+  if(room.host.toString() !== req.user.userId) {
+    throw new ApiError(403, "Only the host can start the session")
+  }
+
+  if(room.currentSession.status === "active"){
+    throw new ApiError(400, "Session is already active");
+  }
+
+  const movieDeck = await getMovieDeck();
+
+  room.currentSession = {
+    status: "active",
+    movieDeck,
+    startedAt: new Date(),
+  }
+
+  await room.save();
+
+  return res.status(200).json({
+    success: true,
+    message: "Session started",
+    movieCount: movieDeck.length,
+  })
 });

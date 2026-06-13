@@ -1,5 +1,17 @@
 import mongoose from "mongoose";
 
+const MovieSchema = mongoose.Schema(
+  {
+    tmdbId: Number,
+    title: String,
+    overview: String,
+    posterUrl: String,
+    releaseDate: String,
+    rating: Number,
+  },
+  { _id: false },
+);
+
 const RoomSchema = mongoose.Schema(
   {
     roomCode: {
@@ -21,10 +33,17 @@ const RoomSchema = mongoose.Schema(
       },
     ],
 
-    isActive: {
-      type: Boolean,
-      default: true,
+    currentSession: {
+      status: {
+        type: String,
+        enum: ["waiting", "active", "completed"],
+        default: "waiting",
+      },
     },
+
+    movieDeck: [MovieSchema],
+
+    startedAt: Date,
   },
   {
     timestamps: true,

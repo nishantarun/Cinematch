@@ -19,3 +19,8 @@ export const getPopularMovies = async () => {
     rating: movie.vote_average,
   }));
 };
+
+export const getMovieDeck = async (size = 20) => {
+  const movies = await getPopularMovies();
+  return movies.slice(0, size);
+};
