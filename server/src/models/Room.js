@@ -2,12 +2,38 @@ import mongoose from "mongoose";
 
 const MovieSchema = mongoose.Schema(
   {
-    tmdbId: Number,
+    movieId: Number,
     title: String,
     overview: String,
     posterUrl: String,
     releaseDate: String,
     rating: Number,
+  },
+  { _id: false },
+);
+
+const SwipeSchema = mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
+    movieId: {
+      type: Number,
+      required: true,
+    },
+
+    liked: {
+      type: Boolean,
+      required: true,
+    },
+
+    swipedAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
   { _id: false },
 );
@@ -41,6 +67,10 @@ const RoomSchema = mongoose.Schema(
       },
 
       movieDeck: [MovieSchema],
+
+      swipes: [SwipeSchema],
+      
+      matches: [MovieSchema],
 
       startedAt: Date,
     },

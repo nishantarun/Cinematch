@@ -114,3 +114,56 @@ export const getSession = asyncHandler(async (req, res) => {
     session: room.currentSession,
   });
 });
+
+export const submitSwipe = asyncHandler(async (req, res) => {
+  const { roomCode } = req.params;
+
+  const room = await Room.findOne({ roomCode });
+
+  if (!room) {
+    throw new ApiError(404, "Room not found");
+  }
+
+  const isMember = room.members.some(
+    (member) => member.toString() === req.user.userId,
+  );
+
+  if (!isMember) {
+    throw new ApiError(403, "You are not a member of this room");
+  }
+
+  if (room.currentSession.status !== "active") {
+    throw new ApiError(400, "No active session");
+  }
+
+  const { movieId, liked } = req.body;
+
+  const movieExists = room.currentSession.movieDeck.some(
+    (movie) => movie.movieId === movieId,
+  );
+
+  if (!movieExists) {
+    throw new ApiError(400, "Movie does not exist in current session");
+  }
+
+  const alreadySwiped = room.currentSession.swipes.some(
+    swipe => swipe.userId.toString() === req.user.userId && swipe.movieId === movieId
+  )
+
+  if(alreadySwiped) {
+    throw new ApiError(400, "You have already swiped this movie");
+  }
+
+  room.currentSession.swipes.push({
+    userId: req.user.userId,
+    movieId,
+    liked,
+  })
+
+  await room.save();
+
+  return res.json({
+    success: true,
+    message: "Swipe Recorded"
+  })
+});
