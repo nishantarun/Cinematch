@@ -75,7 +75,7 @@ export const startSession = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Session is already active");
   }
 
-  const movieDeck = await getMovieDeck(2);
+  const movieDeck = await getMovieDeck();
 
   room.currentSession = {
     status: "active",
@@ -207,5 +207,40 @@ export const submitSwipe = asyncHandler(async (req, res) => {
   return res.json({
     success: true,
     message: "Swipe recorded",
+  });
+});
+
+export const restartSession = asyncHandler(async (req, res) => {
+  const { roomCode } = req.params;
+
+  const room = await Room.findOne({ roomCode });
+
+  if (!room) {
+    throw new ApiError(404, "Room not found");
+  }
+
+  if (room.host.toString() !== req.user.userId) {
+    throw new ApiError(403, "Only host can restart session");
+  }
+
+  if (room.currentSession.status === "waiting") {
+    throw new ApiError(400, "Session has not started yet");
+  }
+
+  const movieDeck = await getMovieDeck();
+
+  room.currentSession = {
+    status: "active",
+    movieDeck,
+    swipes: [],
+    matches: [],
+    startedAt: new Date(),
+  };
+
+  await room.save();
+
+  return res.status(200).json({
+    success: true,
+    session: room.currentSession,
   });
 });
