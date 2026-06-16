@@ -147,10 +147,11 @@ export const submitSwipe = asyncHandler(async (req, res) => {
   }
 
   const alreadySwiped = room.currentSession.swipes.some(
-    swipe => swipe.userId.toString() === req.user.userId && swipe.movieId === movieId
-  )
+    (swipe) =>
+      swipe.userId.toString() === req.user.userId && swipe.movieId === movieId,
+  );
 
-  if(alreadySwiped) {
+  if (alreadySwiped) {
     throw new ApiError(400, "You have already swiped this movie");
   }
 
@@ -158,12 +159,50 @@ export const submitSwipe = asyncHandler(async (req, res) => {
     userId: req.user.userId,
     movieId,
     liked,
-  })
+  });
+
+  await room.save();
+
+  const movieSwipes = room.currentSession.swipes.filter(
+    (swipe) => swipe.movieId === movieId,
+  );
+
+  const everyoneVoted = movieSwipes.length === room.members.length;
+  console.log("Everyone voted:", everyoneVoted);
+
+  if (!everyoneVoted) {
+    return res.status(200).json({
+      sucess: true,
+      message: "Swipe recorded",
+    });
+  }
+
+  const matchFound = movieSwipes.every((swipe) => swipe.liked);
+  console.log("Match found:", matchFound);
+
+  if (!matchFound) {
+    return res.status(200).json({
+      success: true,
+      message: "Swipe recorded",
+    });
+  }
+
+  const alreadyMatched = room.currentSession.matches.some(
+    (movie) => movie.movieId === movieId,
+  );
+
+  if (!alreadyMatched) {
+    const matchedMovie = room.currentSession.movieDeck.find(
+      (movie) => movie.movieId === movieId,
+    );
+
+    room.currentSession.matches.push(matchedMovie);
+  }
 
   await room.save();
 
   return res.json({
     success: true,
-    message: "Swipe Recorded"
-  })
+    message: "Swipe recorded",
+  });
 });
