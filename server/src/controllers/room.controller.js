@@ -75,7 +75,7 @@ export const startSession = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Session is already active");
   }
 
-  const movieDeck = await getMovieDeck();
+  const movieDeck = await getMovieDeck(2);
 
   room.currentSession = {
     status: "active",
@@ -132,8 +132,12 @@ export const submitSwipe = asyncHandler(async (req, res) => {
     throw new ApiError(403, "You are not a member of this room");
   }
 
-  if (room.currentSession.status !== "active") {
-    throw new ApiError(400, "No active session");
+  if (room.currentSession.status === "waiting") {
+    throw new ApiError(400, "Session has not started yet");
+  }
+
+  if (room.currentSession.status === "completed") {
+    throw new ApiError(400, "Session already completed");
   }
 
   const { movieId, liked } = req.body;
@@ -168,35 +172,35 @@ export const submitSwipe = asyncHandler(async (req, res) => {
   );
 
   const everyoneVoted = movieSwipes.length === room.members.length;
-  console.log("Everyone voted:", everyoneVoted);
 
-  if (!everyoneVoted) {
-    return res.status(200).json({
-      sucess: true,
-      message: "Swipe recorded",
-    });
+  if (everyoneVoted) {
+    const matchFound = movieSwipes.every((swipe) => swipe.liked);
+
+    if (matchFound) {
+      const alreadyMatched = room.currentSession.matches.some(
+        (movie) => movie.movieId === movieId,
+      );
+
+      if (!alreadyMatched) {
+        const matchedMovie = room.currentSession.movieDeck.find(
+          (movie) => movie.movieId === movieId,
+        );
+
+        room.currentSession.matches.push(matchedMovie);
+
+        await room.save();
+      }
+    }
   }
 
-  const matchFound = movieSwipes.every((swipe) => swipe.liked);
-  console.log("Match found:", matchFound);
+  const totalPossibleSwipes =
+    room.currentSession.movieDeck.length * room.members.length;
 
-  if (!matchFound) {
-    return res.status(200).json({
-      success: true,
-      message: "Swipe recorded",
-    });
-  }
+  const sessionCompleted =
+    room.currentSession.swipes.length >= totalPossibleSwipes;
 
-  const alreadyMatched = room.currentSession.matches.some(
-    (movie) => movie.movieId === movieId,
-  );
-
-  if (!alreadyMatched) {
-    const matchedMovie = room.currentSession.movieDeck.find(
-      (movie) => movie.movieId === movieId,
-    );
-
-    room.currentSession.matches.push(matchedMovie);
+  if (sessionCompleted) {
+    room.currentSession.status = "completed";
     await room.save();
   }
 
