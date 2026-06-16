@@ -197,9 +197,8 @@ export const submitSwipe = asyncHandler(async (req, res) => {
     );
 
     room.currentSession.matches.push(matchedMovie);
+    await room.save();
   }
-
-  await room.save();
 
   return res.json({
     success: true,
