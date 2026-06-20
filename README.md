@@ -30,16 +30,6 @@ CineMatch is a real-time group movie discovery platform where users join rooms, 
 * Redis-powered swipe engine
 * AI-powered recommendations (future phase)
 
-## Current Progress
-
-### Day 1
-
-* Project initialized
-* React frontend setup
-* Express backend setup
-* MongoDB Atlas connection
-* Health check endpoint
-
 ## Architecture
 
 Frontend → Express API → MongoDB
