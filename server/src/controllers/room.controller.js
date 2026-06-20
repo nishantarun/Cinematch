@@ -244,3 +244,112 @@ export const restartSession = asyncHandler(async (req, res) => {
     session: room.currentSession,
   });
 });
+
+export const leaveRoom = asyncHandler(async (req, res) => {
+  const { roomCode } = req.params;
+
+  const room = await Room.findOne({ roomCode });
+
+  if (!room) {
+    throw new ApiError(404, "Room not found");
+  }
+
+  const isMember = room.members.some(
+    (member) => member.toString() === req.user.userId,
+  );
+
+  if (!isMember) {
+    throw new ApiError(403, "You are not a member of this room");
+  }
+
+  const isHostLeaving = room.host.toString() === req.user.userId;
+
+  room.members = room.members.filter(
+    (member) => member.toString() !== req.user.userId,
+  );
+
+  if (room.members.length === 0) {
+    await Room.deleteOne({ _id: room._id });
+
+    return res.status(200).json({
+      success: true,
+      message: "Room deleted",
+    });
+  }
+
+  if (room.currentSession.status !== "waiting") {
+    room.currentSession.swipes = room.currentSession.swipes.filter(
+      (swipe) => swipe.userId.toString() !== req.user.userId,
+    );
+
+    room.currentSession.matches = [];
+
+    for (const movie of room.currentSession.movieDeck) {
+      const movieSwipes = room.currentSession.swipes.filter(
+        (swipe) => swipe.movieId === movie.movieId,
+      );
+
+      const everyoneVoted = movieSwipes.length === room.members.length;
+
+      if (!everyoneVoted) {
+        continue;
+      }
+
+      const matchFound = movieSwipes.every((swipe) => swipe.liked);
+      if (matchFound) {
+        room.currentSession.matches.push(movie);
+      }
+    }
+
+    const totalPossibleSwipes =
+      room.currentSession.movieDeck.length * room.members.length;
+
+    const sessionCompleted =
+      room.currentSession.swipes.length >= totalPossibleSwipes;
+
+    room.currentSession.status = sessionCompleted ? "completed" : "active";
+  }
+
+  if (isHostLeaving) {
+    room.host = room.members[0];
+  }
+
+  await room.save();
+
+  return res.status(200).json({
+    success: true,
+    message: "Left room successfully",
+  });
+});
+
+export const getRoomDetails = asyncHandler(async (req, res) => {
+  const { roomCode } = req.params;
+
+  const room = await Room.findOne({ roomCode })
+    .populate("host", "username")
+    .populate("members", "username");
+
+  if (!room) {
+    throw new ApiError(404, "Room not found");
+  }
+
+  const isMember = room.members.some(
+    (member) => member._id.toString() === req.user.userId,
+  );
+
+  if (!isMember) {
+    throw new ApiError(403, "You are not a member of this room");
+  }
+
+  return res.status(200).json({
+    success: true,
+    room: {
+      roomCode: room.roomCode,
+      host: room.host,
+      members: room.members,
+      currentSession: {
+        status: room.currentSession.status,
+      },
+    },
+  });
+});
