@@ -3,6 +3,8 @@ import generateRoomCode from "../utils/generateRoomCode.js";
 import asyncHandler from "../middlewares/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import { getMovieDeck } from "../services/tmdb.service.js";
+import { SOCKET_EVENTS } from "../sockets/events.js";
+import { emitToRoom } from "../sockets/emitters.js";
 
 export const createRoom = asyncHandler(async (req, res) => {
   let roomCode;
@@ -51,6 +53,11 @@ export const joinRoom = asyncHandler(async (req, res) => {
     },
   });
 
+  emitToRoom(room.roomCode, SOCKET_EVENTS.JOIN_ROOM, {
+    userId: req.user.userId,
+    username: req.user.username,
+  });
+
   const updatedRoom = await Room.findById(room._id);
   res.status(200).json({
     success: true,
@@ -84,6 +91,8 @@ export const startSession = asyncHandler(async (req, res) => {
   };
 
   await room.save();
+
+  emitToRoom(room.roomCode, SOCKET_EVENTS.SESSION_STARTED);
 
   return res.status(200).json({
     success: true,
@@ -190,6 +199,10 @@ export const submitSwipe = asyncHandler(async (req, res) => {
 
         await room.save();
       }
+
+      emitToRoom(room.roomCode, SOCKET_EVENTS.MATCH_FOUND, {
+        movieId,
+      });
     }
   }
 
@@ -202,6 +215,8 @@ export const submitSwipe = asyncHandler(async (req, res) => {
   if (sessionCompleted) {
     room.currentSession.status = "completed";
     await room.save();
+
+    emitToRoom(room.roomCode, SOCKET_EVENTS.SESSION_COMPLETED);
   }
 
   return res.json({
@@ -238,6 +253,8 @@ export const restartSession = asyncHandler(async (req, res) => {
   };
 
   await room.save();
+
+  emitToRoom(room.roomCode, SOCKET_EVENTS.SESSIONN_RESTARTED);
 
   return res.status(200).json({
     success: true,
@@ -315,6 +332,11 @@ export const leaveRoom = asyncHandler(async (req, res) => {
   }
 
   await room.save();
+
+  emitToRoom(room.roomCode, SOCKET_EVENTS.MEMBER_LEFT, {
+    userId: req.user.userId,
+    username: req.user.username,
+  });
 
   return res.status(200).json({
     success: true,

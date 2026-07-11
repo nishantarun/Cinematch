@@ -1,5 +1,5 @@
 import { Server } from "socket.io";
-//import { registerRoomHandlers } from "./room.socket.js";
+import { registerRoomHandlers } from "./room.socket.js";
 
 let io;
 
@@ -13,7 +13,7 @@ export const initSocket = (server) => {
   io.on("connection", (socket) => {
     console.log(`Socket connected: ${socket.id}`);
 
-    //registerRoomHandlers(io, socket);
+    registerRoomHandlers(io, socket);
 
     socket.on("disconnect", () => {
       console.log(`Socket disconnected: ${socket.id}`);
@@ -27,6 +27,5 @@ export const getIO = () => {
   if (!io) {
     throw new Error("Socket.io has not been initialized.");
   }
-
   return io;
 };
