@@ -4,6 +4,7 @@ import App from "../App.jsx";
 import LoginPage from "../pages/LoginPage.jsx";
 import RegisterPage from "../pages/RegisterPage.jsx";
 import HomePage from "../pages/HomePage.jsx";
+import RoomPage from "../pages/RoomPage.jsx";
 import Protection from "./Protection.jsx";
 
 const AppRoutes = () => {
@@ -16,6 +17,7 @@ const AppRoutes = () => {
         </Route>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/room/:roomCode" element={<RoomPage />} />
       </Routes>
     </BrowserRouter>
   );

@@ -1,4 +1,4 @@
-import api from "../../api/axios";
+import api from "../../api/axios.js";
 
 export const startSession = async (roomCode) => {
   const response = await api.post(`/rooms/${roomCode}/start`);

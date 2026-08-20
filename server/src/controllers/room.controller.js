@@ -21,9 +21,13 @@ export const createRoom = asyncHandler(async (req, res) => {
     members: [req.user.userId],
   });
 
+  const populatedRoom = await Room.findById(room._id)
+    .populate("host", "username")
+    .populate("members", "username");
+
   res.status(201).json({
     success: true,
-    room,
+    room: populatedRoom,
   });
 });
 
@@ -41,9 +45,13 @@ export const joinRoom = asyncHandler(async (req, res) => {
   );
 
   if (alreadyJoined) {
+    const populatedRoom = await Room.findById(room._id)
+      .populate("host", "username")
+      .populate("members", "username");
+
     return res.status(200).json({
       success: true,
-      room,
+      room: populatedRoom,
     });
   }
 
@@ -58,7 +66,10 @@ export const joinRoom = asyncHandler(async (req, res) => {
     username: req.user.username,
   });
 
-  const updatedRoom = await Room.findById(room._id);
+  const updatedRoom = await Room.findById(room._id)
+    .populate("host", "username")
+    .populate("members", "username");
+
   res.status(200).json({
     success: true,
     room: updatedRoom,
