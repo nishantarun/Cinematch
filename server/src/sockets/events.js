@@ -6,7 +6,7 @@ export const SOCKET_EVENTS = {
   MEMBER_LEFT: "member-left",
 
   SESSION_STARTED: "session-started",
-  SESSIONN_RESTARTED: "session-restarted",
+  SESSION_RESTARTED: "session-restarted",
 
   MATCH_FOUND: "match-found",
   SESSION_COMPLETED: "session-completed",

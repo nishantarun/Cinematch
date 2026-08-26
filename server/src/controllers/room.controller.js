@@ -265,7 +265,7 @@ export const restartSession = asyncHandler(async (req, res) => {
 
   await room.save();
 
-  emitToRoom(room.roomCode, SOCKET_EVENTS.SESSIONN_RESTARTED);
+  emitToRoom(room.roomCode, SOCKET_EVENTS.SESSION_RESTARTED);
 
   return res.status(200).json({
     success: true,
