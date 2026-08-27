@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { registerUser } from "../features/auth/authApi.js";
 
 const RegisterPage = () => {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -25,6 +27,8 @@ const RegisterPage = () => {
       const response = await registerUser(formData);
 
       console.log("Registration successfull:", response);
+
+      navigate("/login");
     } catch (error) {
       console.error("Registration Failed", error.response);
     }

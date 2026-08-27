@@ -1,12 +1,16 @@
 import { useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { getRoomDetails } from "../features/room/roomApi.js";
+import { useParams, useNavigate } from "react-router-dom";
+import { getRoomDetails, leaveRoom } from "../features/room/roomApi.js";
 import { getSession, startSession } from "../features/session/sessionApi.js";
 import useRoomStore from "../store/roomStore.js";
 import userAuthStore from "../store/authStore.js";
 import useSessionStore from "../store/sessionStore.js";
 
 const RoomPage = () => {
+  const navigate = useNavigate();
+  const clearRoom = useRoomStore((state) => state.clearRoom);
+  const clearSession = useSessionStore((state) => state.clearSession);
+
   const { roomCode } = useParams();
 
   const room = useRoomStore((state) => state.room);
@@ -30,6 +34,19 @@ const RoomPage = () => {
     }
   };
 
+  const handleLeaveRoom = async () => {
+    try {
+      await leaveRoom(roomCode);
+
+      clearRoom();
+      clearSession();
+
+      navigate("/home");
+    } catch (error) {
+      console.error("Failed to leave room:", error.message?.data);
+    }
+  };
+
   useEffect(() => {
     const fetchRoomDetails = async () => {
       try {
@@ -40,10 +57,14 @@ const RoomPage = () => {
         setSession(sessionResponse.session);
       } catch (error) {
         console.error("Failed to fetch room details: ", error.response?.data);
+
+        clearRoom();
+        clearSession();
+        navigate("/home");
       }
     };
     fetchRoomDetails();
-  }, [roomCode, setRoom, setSession]);
+  }, [roomCode, setRoom, setSession, clearRoom, clearSession, navigate]);
 
   if (!room) {
     return <p>Loading Room...</p>;
@@ -68,6 +89,9 @@ const RoomPage = () => {
           return <li key={member._id}>{member.username}</li>;
         })}
       </ul>
+      <button type="button" onClick={handleLeaveRoom}>
+        Leave Room
+      </button>
     </main>
   );
 };

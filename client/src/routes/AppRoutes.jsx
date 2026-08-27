@@ -12,12 +12,14 @@ const AppRoutes = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<App />} />
+
         <Route element={<Protection />}>
           <Route path="/home" element={<HomePage />} />
+          <Route path="/room/:roomCode" element={<RoomPage />} />
         </Route>
+
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/room/:roomCode" element={<RoomPage />} />
       </Routes>
     </BrowserRouter>
   );

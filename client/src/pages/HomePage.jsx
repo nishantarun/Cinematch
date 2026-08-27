@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createRoom, joinRoom } from "../features/room/roomApi.js";
 import useRoomStore from "../store/roomStore.js";
+import userAuthStore from "../store/authStore.js";
 
 const HomePage = () => {
   const [roomCode, setRoomCode] = useState("");
@@ -11,6 +12,9 @@ const HomePage = () => {
   };
 
   const navigate = useNavigate();
+
+  const logout = userAuthStore((state) => state.logout);
+
   const setRoom = useRoomStore((state) => state.setRoom);
 
   const handleCreateRoom = async () => {
@@ -37,9 +41,19 @@ const HomePage = () => {
     }
   };
 
+  const handleLogout = () => {
+    logout();
+
+    navigate("/login");
+  };
+
   return (
     <main>
       <h1>CineMatch</h1>
+
+      <button type="button" onClick={handleLogout}>
+        Logout
+      </button>
 
       <section>
         <h2>Create a room</h2>

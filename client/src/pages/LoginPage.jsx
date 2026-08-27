@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../features/auth/authApi.js";
 import userAuthStore from "../store/authStore.js";
 
 const LoginPage = () => {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -25,6 +27,7 @@ const LoginPage = () => {
       const response = await loginUser(formData);
 
       userAuthStore.getState().login(response.token);
+      navigate("/home");
 
       console.log("Login Successfull", response);
     } catch (error) {
