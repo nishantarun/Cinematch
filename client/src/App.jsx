@@ -1,5 +1,10 @@
+import { Outlet } from "react-router-dom";
+import useSocket from "./hooks/useSocket.js";
+
 const App = () => {
-  return <h1>CineMatch</h1>;
+  useSocket();
+
+  return <Outlet />;
 };
 
 export default App;

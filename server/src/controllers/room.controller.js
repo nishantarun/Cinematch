@@ -61,7 +61,7 @@ export const joinRoom = asyncHandler(async (req, res) => {
     },
   });
 
-  emitToRoom(room.roomCode, SOCKET_EVENTS.JOIN_ROOM, {
+  emitToRoom(room.roomCode, SOCKET_EVENTS.MEMBER_JOINED, {
     userId: req.user.userId,
     username: req.user.username,
   });

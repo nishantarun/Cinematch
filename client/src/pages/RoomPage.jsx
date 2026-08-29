@@ -1,10 +1,12 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getRoomDetails, leaveRoom } from "../features/room/roomApi.js";
 import { getSession, startSession } from "../features/session/sessionApi.js";
 import useRoomStore from "../store/roomStore.js";
 import userAuthStore from "../store/authStore.js";
 import useSessionStore from "../store/sessionStore.js";
+import { joinSocketRoom, leaveSocketRoom } from "../socket/socket.js";
+import useRoomSocket from "../hooks/useRoomSocket.js";
 
 const RoomPage = () => {
   const navigate = useNavigate();
@@ -22,6 +24,26 @@ const RoomPage = () => {
   const session = useSessionStore((state) => state.session);
   const setSession = useSessionStore((state) => state.setSession);
 
+  const handleMemberJoined = useCallback(async () => {
+    try {
+      const response = await getRoomDetails(roomCode);
+      setRoom(response.room);
+    } catch (error) {
+      console.error("Failed to refresh room details:", error.response?.data);
+    }
+  }, [roomCode, setRoom]);
+
+  const handleMemberLeft = useCallback(async () => {
+    try {
+      const response = await getRoomDetails(roomCode);
+      setRoom(response.room);
+    } catch (error) {
+      console.error("Failed to refresh room details:", error.response?.data);
+    }
+  }, [roomCode, setRoom]);
+
+  useRoomSocket(handleMemberJoined, handleMemberLeft);
+
   const handleStartSession = async () => {
     try {
       await startSession(roomCode);
@@ -36,6 +58,8 @@ const RoomPage = () => {
 
   const handleLeaveRoom = async () => {
     try {
+      leaveSocketRoom(roomCode);
+
       await leaveRoom(roomCode);
 
       clearRoom();
@@ -52,6 +76,8 @@ const RoomPage = () => {
       try {
         const response = await getRoomDetails(roomCode);
         setRoom(response.room);
+
+        joinSocketRoom(roomCode);
 
         const sessionResponse = await getSession(roomCode);
         setSession(sessionResponse.session);
