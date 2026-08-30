@@ -24,9 +24,7 @@ const RegisterPage = () => {
     event.preventDefault();
 
     try {
-      const response = await registerUser(formData);
-
-      console.log("Registration successfull:", response);
+      await registerUser(formData);
 
       navigate("/login");
     } catch (error) {

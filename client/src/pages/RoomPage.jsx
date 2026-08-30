@@ -232,6 +232,33 @@ const RoomPage = () => {
           )}
         </section>
       )}
+
+      {session?.status === "completed" && (
+        <section>
+          <h2>Session Complete</h2>
+          {isHost && (
+            <button type="button" onClick={handleRestartSession}>
+              Restart Session
+            </button>
+          )}
+          {session.matches?.length > 0 ? (
+            <>
+              <h3>Matches</h3>
+
+              <ul>
+                {session.matches.map((movie) => (
+                  <li key={movie.movieId}>
+                    <h4>{movie.title}</h4>
+                    <p>{movie.overview}</p>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <p>No matches found.</p>
+          )}
+        </section>
+      )}
     </main>
   );
 };
