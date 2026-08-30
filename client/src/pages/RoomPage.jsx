@@ -5,6 +5,7 @@ import {
   getSession,
   startSession,
   restartSession,
+  submitSwipe,
 } from "../features/session/sessionApi.js";
 import useRoomStore from "../store/roomStore.js";
 import userAuthStore from "../store/authStore.js";
@@ -27,6 +28,13 @@ const RoomPage = () => {
 
   const session = useSessionStore((state) => state.session);
   const setSession = useSessionStore((state) => state.setSession);
+
+  const currentMovie = session?.movieDeck?.find(
+    (movie) =>
+      !session.swipes?.some(
+        (swipe) => swipe.userId === userId && swipe.movieId === movie.movieId,
+      ),
+  );
 
   const handleMemberJoined = useCallback(async () => {
     try {
@@ -64,12 +72,32 @@ const RoomPage = () => {
     }
   }, [roomCode, setSession]);
 
-  useRoomSocket(
-    handleMemberJoined,
-    handleMemberLeft,
-    handleSessionStarted,
-    handleSessionRestarted,
-  );
+  const handleMatchFound = useCallback(async () => {
+    try {
+      const response = await getSession(roomCode);
+      setSession(response.session);
+    } catch (error) {
+      console.error("Failed to refresh session:", error.response?.data);
+    }
+  }, [roomCode, setSession]);
+
+  const handleSessionCompleted = useCallback(async () => {
+    try {
+      const response = await getSession(roomCode);
+      setSession(response.session);
+    } catch (error) {
+      console.error("Failed to refresh session:", error.response?.data);
+    }
+  }, [roomCode, setSession]);
+
+  useRoomSocket({
+    onMemberJoined: handleMemberJoined,
+    onMemberLeft: handleMemberLeft,
+    onSessionStarted: handleSessionStarted,
+    onMatchFound: handleMatchFound,
+    onSessionCompleted: handleSessionCompleted,
+    onSessionRestarted: handleSessionRestarted,
+  });
 
   const handleStartSession = async () => {
     try {
@@ -92,6 +120,21 @@ const RoomPage = () => {
       setSession(response.session);
     } catch (error) {
       console.error("Failed to restart session:", error.response?.data);
+    }
+  };
+
+  const handleSwipe = async (liked) => {
+    if (!currentMovie) {
+      return;
+    }
+
+    try {
+      await submitSwipe(roomCode, currentMovie.movieId, liked);
+
+      const response = await getSession(roomCode);
+      setSession(response.session);
+    } catch (error) {
+      console.error("Failed to submit swipe:", error.response?.data);
     }
   };
 
@@ -166,6 +209,29 @@ const RoomPage = () => {
       <button type="button" onClick={handleLeaveRoom}>
         Leave Room
       </button>
+
+      {session?.status === "active" && (
+        <section>
+          <h2>Current Movie</h2>
+
+          {currentMovie ? (
+            <>
+              <h3>{currentMovie.title}</h3>
+              <p>{currentMovie.overview}</p>
+
+              <button type="button" onClick={() => handleSwipe(false)}>
+                Dislike
+              </button>
+
+              <button type="button" onClick={() => handleSwipe(true)}>
+                Like
+              </button>
+            </>
+          ) : (
+            <p>You have finished all movies.</p>
+          )}
+        </section>
+      )}
     </main>
   );
 };
