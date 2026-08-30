@@ -1,7 +1,11 @@
 import { useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getRoomDetails, leaveRoom } from "../features/room/roomApi.js";
-import { getSession, startSession } from "../features/session/sessionApi.js";
+import {
+  getSession,
+  startSession,
+  restartSession,
+} from "../features/session/sessionApi.js";
 import useRoomStore from "../store/roomStore.js";
 import userAuthStore from "../store/authStore.js";
 import useSessionStore from "../store/sessionStore.js";
@@ -42,7 +46,30 @@ const RoomPage = () => {
     }
   }, [roomCode, setRoom]);
 
-  useRoomSocket(handleMemberJoined, handleMemberLeft);
+  const handleSessionStarted = useCallback(async () => {
+    try {
+      const response = await getSession(roomCode);
+      setSession(response.session);
+    } catch (error) {
+      console.error("Failed to refresh session:", error.response?.data);
+    }
+  }, [roomCode, setSession]);
+
+  const handleSessionRestarted = useCallback(async () => {
+    try {
+      const response = await getSession(roomCode);
+      setSession(response.session);
+    } catch (error) {
+      console.error("Failed to refresh session:", error.response?.data);
+    }
+  }, [roomCode, setSession]);
+
+  useRoomSocket(
+    handleMemberJoined,
+    handleMemberLeft,
+    handleSessionStarted,
+    handleSessionRestarted,
+  );
 
   const handleStartSession = async () => {
     try {
@@ -53,6 +80,18 @@ const RoomPage = () => {
       setSession(response.session);
     } catch (error) {
       console.error("Failed to start session: ", error.response?.data);
+    }
+  };
+
+  const handleRestartSession = async () => {
+    try {
+      await restartSession(roomCode);
+
+      const response = await getSession(roomCode);
+
+      setSession(response.session);
+    } catch (error) {
+      console.error("Failed to restart session:", error.response?.data);
     }
   };
 
@@ -101,11 +140,20 @@ const RoomPage = () => {
       <h1>Room</h1>
       <p>Room code: {roomCode}</p>
       <p>Session status: {session?.status}</p>
-      {isHost ? (
+
+      {isHost && session?.status === "waiting" && (
         <button type="button" onClick={handleStartSession}>
           Start Session
         </button>
-      ) : (
+      )}
+
+      {/* {isHost && session?.status === "completed" && (
+        <button type="button" onClick={handleRestartSession}>
+          Restart Session
+        </button>
+      )} */}
+
+      {!isHost && session?.status === "waiting" && (
         <p>Waiting for host to start...</p>
       )}
 

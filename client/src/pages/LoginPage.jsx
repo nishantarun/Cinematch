@@ -27,9 +27,8 @@ const LoginPage = () => {
       const response = await loginUser(formData);
 
       userAuthStore.getState().login(response.token);
+      
       navigate("/home");
-
-      console.log("Login Successfull", response);
     } catch (error) {
       console.error("Login failed:", error.response?.data);
     }
