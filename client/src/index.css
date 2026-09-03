@@ -1,7 +1,52 @@
-* {
-  box-sizing: border-box;
+@import "tailwindcss";
+
+:root {
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-hover: #f1f5f9;
+
+  --color-text: #0f172a;
+  --color-text-muted: #64748b;
+
+  --color-border: #e2e8f0;
+
+  --color-primary: #7c3aed;
+  --color-primary-hover: #6d28d9;
+
+  --color-danger: #dc2626;
+  --color-success: #16a34a;
 }
 
-body {
-  margin: 0;
+.dark {
+  --color-background: #0f0f12;
+  --color-surface: #18181c;
+  --color-surface-hover: #24242a;
+
+  --color-text: #f8fafc;
+  --color-text-muted: #a1a1aa;
+
+  --color-border: #2f2f36;
+
+  --color-primary: #a78bfa;
+  --color-primary-hover: #8b5cf6;
+
+  --color-danger: #f87171;
+  --color-success: #4ade80;
+}
+
+@theme {
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-surface-hover: var(--color-surface-hover);
+
+  --color-text: var(--color-text);
+  --color-text-muted: var(--color-text-muted);
+
+  --color-border: var(--color-border);
+
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+
+  --color-danger: var(--color-danger);
+  --color-success: var(--color-success);
 }
