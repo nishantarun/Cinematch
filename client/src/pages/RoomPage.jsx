@@ -12,6 +12,9 @@ import userAuthStore from "../store/authStore.js";
 import useSessionStore from "../store/sessionStore.js";
 import { joinSocketRoom, leaveSocketRoom } from "../socket/socket.js";
 import useRoomSocket from "../hooks/useRoomSocket.js";
+import Button from "../components/ui/Button.jsx";
+import Card from "../components/ui/Card.jsx";
+import ThemeToggle from "../components/ThemeToggle.jsx";
 
 const RoomPage = () => {
   const navigate = useNavigate();
@@ -175,90 +178,204 @@ const RoomPage = () => {
   }, [roomCode, setRoom, setSession, clearRoom, clearSession, navigate]);
 
   if (!room) {
-    return <p>Loading Room...</p>;
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-background text-text">
+        <p className="text-text-muted">Loading room...</p>
+      </main>
+    );
   }
 
   return (
-    <main>
-      <h1>Room</h1>
-      <p>Room code: {roomCode}</p>
-      <p>Session status: {session?.status}</p>
+    <main className="min-h-screen bg-background text-text">
+      <header className="flex items-center justify-between border-b border-border px-6 py-4">
+        <h1 className="text-2xl font-bold tracking-tight">CineMatch</h1>
 
-      {isHost && session?.status === "waiting" && (
-        <button type="button" onClick={handleStartSession}>
-          Start Session
-        </button>
-      )}
+        <div className="flex items-center gap-4">
+          <ThemeToggle />
 
-      {/* {isHost && session?.status === "completed" && (
-        <button type="button" onClick={handleRestartSession}>
-          Restart Session
-        </button>
-      )} */}
+          <Button variant="ghost" onClick={handleLeaveRoom} fullWidth={false}>
+            Leave Room
+          </Button>
+        </div>
+      </header>
 
-      {!isHost && session?.status === "waiting" && (
-        <p>Waiting for host to start...</p>
-      )}
+      <div className="mx-auto max-w-6xl px-6 py-8">
+        {/* Room information */}
+        <section className="mb-8">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+            <div>
+              <p className="text-sm font-medium uppercase tracking-wider text-text-muted">
+                Room
+              </p>
 
-      <h2>Members</h2>
-      <ul>
-        {room.members.map((member) => {
-          return <li key={member._id}>{member.username}</li>;
-        })}
-      </ul>
-      <button type="button" onClick={handleLeaveRoom}>
-        Leave Room
-      </button>
+              <h2 className="mt-1 text-3xl font-bold tracking-tight">
+                {roomCode}
+              </h2>
+            </div>
 
-      {session?.status === "active" && (
-        <section>
-          <h2>Current Movie</h2>
-
-          {currentMovie ? (
-            <>
-              <h3>{currentMovie.title}</h3>
-              <p>{currentMovie.overview}</p>
-
-              <button type="button" onClick={() => handleSwipe(false)}>
-                Dislike
-              </button>
-
-              <button type="button" onClick={() => handleSwipe(true)}>
-                Like
-              </button>
-            </>
-          ) : (
-            <p>You have finished all movies.</p>
-          )}
+            <div className="rounded-full border border-border bg-surface px-4 py-2 text-sm">
+              Session:{" "}
+              <span className="font-medium capitalize">{session?.status}</span>
+            </div>
+          </div>
         </section>
-      )}
 
-      {session?.status === "completed" && (
-        <section>
-          <h2>Session Complete</h2>
-          {isHost && (
-            <button type="button" onClick={handleRestartSession}>
-              Restart Session
-            </button>
-          )}
-          {session.matches?.length > 0 ? (
-            <>
-              <h3>Matches</h3>
+        <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
+          {/* Members */}
+          <Card>
+            <h2 className="text-lg font-semibold">Members</h2>
 
-              <ul>
-                {session.matches.map((movie) => (
-                  <li key={movie.movieId}>
-                    <h4>{movie.title}</h4>
-                    <p>{movie.overview}</p>
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : (
-            <p>No matches found.</p>
-          )}
-        </section>
-      )}
+            <ul className="mt-4 space-y-3">
+              {room.members.map((member) => (
+                <li key={member._id} className="flex items-center gap-3">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">
+                    {member.username.charAt(0).toUpperCase()}
+                  </span>
+
+                  <span className="text-sm font-medium">
+                    {member.username}
+                    {member._id === room.host._id && (
+                      <span className="ml-2 text-xs text-text-muted">Host</span>
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+
+          {/* Main session area */}
+          <div className="min-w-0">
+            {session?.status === "waiting" && (
+              <Card>
+                <div className="py-12 text-center">
+                  <p className="text-sm font-medium uppercase tracking-wider text-primary">
+                    Ready when you are
+                  </p>
+
+                  <h2 className="mt-3 text-3xl font-bold">
+                    Waiting for the session
+                  </h2>
+
+                  {isHost ? (
+                    <>
+                      <p className="mx-auto mt-3 max-w-md text-text-muted">
+                        Everyone is in the room. Start the session when you're
+                        ready to begin matching movies.
+                      </p>
+
+                      <div className="mx-auto mt-6 max-w-xs">
+                        <Button onClick={handleStartSession}>
+                          Start Session
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="mt-3 text-text-muted">
+                      Waiting for the host to start...
+                    </p>
+                  )}
+                </div>
+              </Card>
+            )}
+
+            {session?.status === "active" && (
+              <Card>
+                {currentMovie ? (
+                  <div>
+                    <div className="mb-8">
+                      <p className="text-sm font-medium uppercase tracking-wider text-primary">
+                        Now showing
+                      </p>
+
+                      <h2 className="mt-2 text-3xl font-bold tracking-tight">
+                        {currentMovie.title}
+                      </h2>
+                    </div>
+
+                    <div className="rounded-xl border border-border bg-background p-5">
+                      <p className="leading-7 text-text-muted">
+                        {currentMovie.overview}
+                      </p>
+                    </div>
+
+                    <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                      <Button
+                        variant="secondary"
+                        onClick={() => handleSwipe(false)}
+                      >
+                        Dislike
+                      </Button>
+
+                      <Button onClick={() => handleSwipe(true)}>Like</Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="py-16 text-center">
+                    <p className="text-2xl font-semibold">You're done voting</p>
+
+                    <p className="mt-2 text-text-muted">
+                      You've finished all the movies. Waiting for the other
+                      members...
+                    </p>
+                  </div>
+                )}
+              </Card>
+            )}
+
+            {session?.status === "completed" && (
+              <Card>
+                <div className="mb-8">
+                  <p className="text-sm font-medium uppercase tracking-wider text-primary">
+                    Session complete
+                  </p>
+
+                  <h2 className="mt-2 text-3xl font-bold">
+                    Your movie matches
+                  </h2>
+
+                  <p className="mt-2 text-text-muted">
+                    Movies everyone in the room liked.
+                  </p>
+                </div>
+
+                {session.matches?.length > 0 ? (
+                  <div className="space-y-4">
+                    {session.matches.map((movie) => (
+                      <article
+                        key={movie.movieId}
+                        className="rounded-xl border border-border bg-background p-5"
+                      >
+                        <h3 className="text-xl font-semibold">{movie.title}</h3>
+
+                        <p className="mt-2 leading-7 text-text-muted">
+                          {movie.overview}
+                        </p>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-border bg-background p-8 text-center">
+                    <p className="font-medium">No matches found.</p>
+
+                    <p className="mt-1 text-sm text-text-muted">
+                      Looks like everyone's movie taste was a little different
+                      this time.
+                    </p>
+                  </div>
+                )}
+
+                {isHost && (
+                  <div className="mt-8 max-w-xs">
+                    <Button onClick={handleRestartSession}>
+                      Restart Session
+                    </Button>
+                  </div>
+                )}
+              </Card>
+            )}
+          </div>
+        </div>
+      </div>
     </main>
   );
 };

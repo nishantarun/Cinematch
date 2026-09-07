@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import App from "../App.jsx";
 import LoginPage from "../pages/LoginPage.jsx";
@@ -12,6 +12,7 @@ const AppRoutes = () => {
     <BrowserRouter>
       <Routes>
         <Route element={<App />}>
+          <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
