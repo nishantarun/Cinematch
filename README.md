@@ -4,8 +4,8 @@
 
 CineMatch lets multiple users create or join a shared room, independently like or dislike movies, and discover movies that everyone in the room liked.
 
-**Live Demo:** _Add after deployment_  
-**Repository:** _Add repository URL_
+**Live Demo:** https://cinematch-abir-g1kgb9h2q-nishant-c3d8.vercel.app
+**Repository:** https://github.com/nishantarun/Cinematch
 
 ## Features
 
@@ -225,7 +225,7 @@ Current security mechanisms include:
 - Duplicate swipe prevention
 - Mongoose schema validation
 
-The current Socket.io server configuration uses permissive CORS for development. Production deployment should restrict the allowed origin to the deployed frontend.
+The current deployment uses permissive CORS configuration for the frontend API and Socket.io connection. This is acceptable for the current demo deployment, but restricting allowed origins would be a future hardening step.
 
 ## Local Development
 
@@ -257,11 +257,20 @@ The frontend development server is provided by Vite.
 
 > Exact environment-variable names and production URLs should be taken from the current source/configuration rather than hardcoded in this README.
 
-## Development
+## Deployment
 
-The MVP was developed incrementally, with REST functionality established before adding real-time synchronization. Real-time behavior was tested using multiple browser clients.
+CineMatch is deployed using a simple frontend/backend architecture:
 
-The application intentionally keeps Socket.io handlers thin: persistent business operations remain in the backend controllers, while sockets communicate state changes.
+- **Frontend:** Vercel
+- **Backend:** Render
+- **Database:** MongoDB Atlas
+- **Movie data:** TMDB API
+
+The frontend communicates with the deployed backend through HTTPS for REST requests and Socket.io for real-time synchronization.
+
+Environment-specific configuration is provided through environment variables rather than hardcoded production URLs.
+
+The deployed application has been verified using multiple independent browser clients, including room creation/joining, real-time member synchronization, session voting, match detection, session completion, and session restart.
 
 ## Current Scope
 
